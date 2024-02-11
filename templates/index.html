@@ -1,0 +1,343 @@
+<!-- HTML 模板代码 -->
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Page</title>
+    <!-- 引用 CSS 文件 -->
+    <link rel="stylesheet" href="{{route + url_for('static', filename='styles.css') }}">
+</head>
+<body>
+<h1>计分</h1>
+<!-- 添加玩家名称输入框和按钮 -->
+<label for="player-name-1">玩家1:</label>
+<input type="text" id="player-name-1" name="player-name">
+<br><br>
+<label for="player-name-2">玩家2:</label>
+<input type="text" id="player-name-2" name="player-name">
+<br><br>
+<label for="player-name-3">玩家3:</label>
+<input type="text" id="player-name-3" name="player-name">
+<br><br>
+<!-- 添加提交按钮 -->
+<button onclick="setPlayerNames()">更新玩家名称</button>
+<br><br>
+<!-- 添加历史记录的容器 -->
+<div id="history-container"></div>
+<br><br>
+<!-- 添加玩家选择的下拉菜单 -->
+<label for="king">选择地主:</label>
+<select id="king"></select>
+<br>
+
+<!-- 添加玩家和分数输入框 -->
+<label for="score">输入分数:</label>
+<input type="number" id="score" name="score">
+<br><br>
+
+<!-- 添加按钮来触发新回合 -->
+<button onclick="startNewRound()">记录回合</button>
+<button id="cancelRound">撤销回合</button>
+<!-- 添加重置游戏按钮 -->
+<button onclick="restartGame()">重开游戏</button>
+<br><br>
+<button id="clearPlayerScore">清空分数</button>
+<button id="newGameBtn">创建新游戏</button>
+
+<!-- 在这里放置 JavaScript 代码 -->
+<script>
+        window.onload = function() {
+        restartGame();
+        updatePlayerOptions();
+        refreshHistory();
+    };
+
+    // 定义一个函数，在页面即将被卸载时触发
+    window.onunload = function() {
+        // 向服务器发送请求
+        fetch('{% if route %}{{ route }}/api/close{% else %}/api/close{% endif %}', {
+            method: 'GET',
+        })
+        .then(response => {
+            // 处理响应
+            if (response.ok) {
+                console.log('API called successfully');
+            } else {
+                console.error('Failed to call API');
+            }
+        })
+        .catch(error => {
+            console.error('An error occurred:', error);
+        });
+    };
+    // JavaScript 代码
+
+    // 取消当前回合
+    document.getElementById('cancelRound').addEventListener('click', function() {
+        // 发起 POST 请求到 Flask 后端的 {{route}}/api/cancel_round 路由
+        fetch('{% if route %}{{ route }}/api/cancel_round{% else %}/api/cancel_round{% endif %}', {
+            method: 'POST'
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            // 返回 JSON 数据
+            return response.json();
+        })
+        .then(data => {
+            console.log(data); // 打印从后端返回的数据
+            // 可以在这里添加其他逻辑，例如更新页面上的信息
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+        updatePlayerOptions();
+        refreshHistory();
+    });
+
+    // 清空玩家分数
+    document.getElementById('clearPlayerScore').addEventListener('click', function() {
+        // 发起 POST 请求到 Flask 后端的 {{route}}/api/clear_player_score 路由
+        fetch('{% if route %}{{ route }}/api/clear_player_score{% else %}/api/clear_player_score{% endif %}', {
+            method: 'POST'
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            // 返回 JSON 数据
+            return response.json();
+        })
+        .then(data => {
+            console.log(data); // 打印从后端返回的数据
+            // 可以在这里添加其他逻辑，例如更新页面上的信息
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+        updatePlayerOptions();
+        refreshHistory();
+    });
+
+    // 创建新游戏
+    document.getElementById('newGameBtn').addEventListener('click', function() {
+        // 发起 POST 请求到 Flask 后端的 {{route}}/api/new_game 路由
+        fetch('{% if route %}{{ route }}/api/new_game{% else %}/api/new_game{% endif %}', {
+            method: 'POST'
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            // 返回 JSON 数据
+            return response.json();
+        })
+        .then(data => {
+            console.log(data); // 打印从后端返回的数据
+            // 可以在这里添加其他逻辑，例如更新页面上的信息
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+        updatePlayerOptions();
+        refreshHistory();
+    });
+
+    // 函数：获取玩家数据并设置下拉菜单
+    function updatePlayerOptions() {
+        fetch('{% if route %}{{ route }}/api/get_players{% else %}/api/get_players{% endif %}')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            // 返回 JSON 数据
+            return response.json();
+        })
+        .then(data => {
+            // 获取玩家列表
+            var players = data;
+
+            // 获取玩家选择的下拉菜单元素
+            var select = document.getElementById('king');
+
+            // 清空下拉菜单中的选项
+            select.innerHTML = '';
+
+            // 循环遍历玩家列表，并为每个玩家创建一个选项
+            for (const element of players) {
+                var option = document.createElement('option');
+                option.value = element;
+                option.text = element;
+                select.appendChild(option);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    }
+
+    //设置三个玩家的名称
+    function setPlayerNames() {
+        // 获取三个输入框的值
+        var playerName1 = document.getElementById('player-name-1').value;
+        var playerName2 = document.getElementById('player-name-2').value;
+        var playerName3 = document.getElementById('player-name-3').value;
+
+        // 构建包含三个玩家名称的列表
+        var playerNames = [playerName1, playerName2, playerName3];
+
+        // 创建一个对象，包含要发送的数据
+        const data = {
+            playerNames: playerNames
+        };
+
+        // 发起 POST 请求到 Flask 后端的 {{route}}/api/set_player_names 路由
+        fetch('{% if route %}{{ route }}/api/set_player_names{% else %}/api/set_player_names{% endif %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            // 返回 JSON 数据
+            return response.json();
+        })
+        .then(data => {
+            // 处理从后端返回的 JSON 数据
+            console.log(data);
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+        updatePlayerOptions();
+        refreshHistory();
+    }
+
+    function startNewRound() {
+        // 获取玩家和分数的输入值
+        var king = document.getElementById('king').value;
+        var score = parseInt(document.getElementById('score').value);
+
+        // 创建一个对象，包含要发送的数据
+        const data = {
+            king: king,
+            score: score
+        };
+
+        // 发起 POST 请求到 Flask 后端的 {{route}}/api/new_round 路由
+        fetch('{% if route %}{{ route }}/api/new_round{% else %}/api/new_round{% endif %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            // 新回合执行成功后刷新历史数据
+            refreshHistory();
+            // 返回 JSON 数据
+            return response.json();
+        })
+        .then(data => {
+            // 处理从后端返回的 JSON 数据
+            console.log(data);
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    }
+
+    // 生成表格的函数
+    function generateTable(data) {
+        // 从接收到的 JSON 数据中获取键的顺序数组
+        const keyOrder = data.keyOrder;
+
+        // 创建表格元素
+        var table = document.createElement('table');
+        // 创建表头行元素
+        const headerRow = table.insertRow();
+
+        // 遍历键名顺序数组，创建表头单元格
+        keyOrder.forEach(key => {
+            const headerCell = document.createElement('th');
+            headerCell.textContent = key;
+            headerRow.appendChild(headerCell);
+        });
+
+        // 遍历数据数组，创建行和单元格，并按照键名顺序填充数据
+        data.data.forEach(item => {
+            const row = table.insertRow();
+            keyOrder.forEach(key => {
+                const cell = row.insertCell();
+                cell.textContent = item[key];
+            });
+        });
+
+        return table;
+    }
+
+    // 刷新历史数据的函数
+    function refreshHistory() {
+        // 发起 GET 请求到 Flask 后端的 {{route}}/api/history 路由，获取最新的历史数据
+        fetch('{% if route %}{{ route }}/api/history{% else %}/api/history{% endif %}')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            // 返回 JSON 数据
+            return response.json();
+        })
+        .then(data => {
+            // 获取历史数据的容器元素
+            const historyContainer = document.getElementById('history-container');
+            // 清空历史数据的容器元素
+            historyContainer.innerHTML = '';
+
+            // 生成表格并添加到历史数据的容器元素中
+            const table = generateTable(data);
+            historyContainer.appendChild(table);
+            // 获取表格的列数
+            const columnCount = document.querySelectorAll('#history-container th').length;
+            // 设置CSS变量--column-count的值为表格的列数
+            document.documentElement.style.setProperty('--column-count', columnCount);
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    }
+
+    // 重置游戏的函数
+    function restartGame() {
+        // 发起 POST 请求到 Flask 后端的 {{route}}/api/reset_game 路由
+        fetch('{% if route %}{{ route }}/api/restart{% else %}/api/restart{% endif %}', {
+            method: 'POST'
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            // 返回 JSON 数据
+            return response.json();
+        })
+        .then(data => {
+            // 处理从后端返回的 JSON 数据
+            console.log(data);
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+        updatePlayerOptions();
+        refreshHistory();
+    }
+</script>
+</body>
+</html>

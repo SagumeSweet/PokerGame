@@ -1,0 +1,65 @@
+/* styles.css */
+
+/* 表格自适应 */
+/* 默认字号 */
+/* 默认字号和表格样式 */
+#history-container .table {
+    font-size: 16px;
+    table-layout: fixed; /* 固定表格布局 */
+    border-collapse: collapse; /* 合并边框 */
+    margin-left: 0;
+}
+
+/* 表格响应式设计 */
+@media screen and (max-width: 600px) {
+    #history-container .table {
+        font-size: 14px;
+    }
+}
+
+@media screen and (max-width: 400px) {
+    #history-container .table {
+        font-size: 12px;
+    }
+    #history-container {
+        max-width: 90%; /* 在小屏幕下增加表格宽度 */
+    }
+}
+
+/* 表格每列等宽 */
+#history-container th,
+#history-container td {
+    width: calc(100% / var(--column-count)); /* 计算每列的宽度 */
+    padding: 8px;
+    border: 1px solid #ddd;
+    text-align: left;
+}
+
+/* 表格容器样式 */
+#history-container {
+    margin-left: 0; /* 让表格容器紧贴屏幕左侧 */
+    max-width: 80%; /* 设置表格最大宽度 */
+}
+
+
+
+/* 夜间模式 */
+/* 默认样式 */
+:root {
+    --text-color: black;
+    --background-color: white;
+}
+
+body {
+    color: var(--text-color);
+    background-color: var(--background-color);
+}
+
+/* 夜间模式 */
+@media (prefers-color-scheme: dark) {
+    body {
+        --text-color: white;
+        --background-color: black;
+    }
+}
+
